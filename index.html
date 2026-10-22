@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Sistema Institucional 3D | Perla del Ulúa</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+    <header>
+        <center><img src="Imagenes/Logo IGPU.jpeg" alt="" height="200px" width="200px"></center>
+        <div class="cube" aria-hidden="true">
+            <span>🎓</span><span>💻</span><span>📚</span><span>🏫</span><span>⚙️</span><span>★</span>
+        </div>
+        <h1>Instituto Gubernamental Perla del Ulúa</h1>
+        <p>El Progreso, Yoro, Honduras</p>
+        <p class="badge">Sistema de Administración Académica • Demostración HTML 3D</p>
+        <p>Docente: Lic. Eleuterio Morán Alvarado — Licenciado en Informática Educativa</p>
+    </header>
+    <nav><button onclick="show('inicio')">🏠 Inicio</button>
+        <div class="menu"><button onclick="this.parentElement.classList.toggle('open')" aria-haspopup="true">📂
+                Registros ▾</button>
+            <div class="dropdown" id="navreg"></div>
+        </div><button onclick="show('galeria')">🖼️ Galería</button><button onclick="show('reportes')">📊
+            Listados</button><button onclick="show('respaldo')">💾 Respaldos</button>
+    </nav>
+    <main>
+        <section id="inicio" class="active">
+            <div class="card">
+                <h2>Perfil institucional animado</h2>
+                <p>Prototipo académico de Análisis y Diseño de Sistemas, 11.º grado. Permite gestionar registros
+                    institucionales, consultar listados, almacenar fotografías y elaborar reportes.</p>
+                <p class="hint">Los registros se guardan en el navegador mediante localStorage. No se comparten entre
+                    dispositivos ni constituyen una base de datos segura para información real de estudiantes.</p>
+            </div>
+            <div id="stats" class="grid"></div>
+        </section>
+        <section id="registros">
+            <div class="card">
+                <h2 id="tituloRegistro">Registros</h2>
+                <form id="form" autocomplete="off"><input type="hidden" id="editId">
+                    <div class="grid" id="campos"></div>
+                    <div class="actions"><button type="submit">💾 Guardar / Modificar</button><button type="button"
+                            class="muted" onclick="resetForm()">🧹 Limpiar</button><button type="button"
+                            onclick="window.print()">🖨️ Imprimir</button></div>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Listado almacenado en localStorage</h3><label for="busqueda">Buscar registro</label><input
+                    id="busqueda" placeholder="Escriba nombre, identidad, grado u otro dato..." oninput="renderTabla()">
+                <div class="scroll">
+                    <table>
+                        <thead id="cabecera"></thead>
+                        <tbody id="filas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section id="galeria">
+            <div class="card">
+                <h2>Galería institucional</h2>
+                <form id="fotoForm">
+                    <div class="grid">
+                        <div><label>Nombre de la imagen</label><input id="fotoNombre" required maxlength="100"></div>
+                        <div><label>Categoría</label><select id="fotoCategoria">
+                                <option>Docentes</option>
+                                <option>Estudiantes</option>
+                                <option>Personal directivo</option>
+                                <option>Eventos</option>
+                                <option>Instalaciones</option>
+                            </select></div>
+                        <div><label>Seleccionar fotografía</label><input id="fotoArchivo" type="file" accept="image/*"
+                                required></div>
+                    </div>
+                    <div class="actions"><button>➕ Agregar fotografía</button><button type="button"
+                            onclick="toggleFotos()">👁️ Mostrar / Ocultar</button><button type="button"
+                            onclick="window.print()">🖨️ Imprimir galería</button></div>
+                </form>
+                <p class="hint">Se comprimen las imágenes para ahorrar espacio. Evite subir fotos de estudiantes sin
+                    autorización.</p>
+            </div>
+            <div class="card" id="contenedorGaleria">
+                <h3>Fotografías guardadas</h3>
+                <div class="gallery" id="fotos"></div>
+            </div>
+        </section>
+        <section id="reportes">
+            <div class="card">
+                <h2>Listados institucionales</h2><label>Seleccionar listado</label><select id="tipoReporte"
+                    onchange="renderReporte()"></select>
+                <div class="actions"><button onclick="renderReporte()">🔄 Actualizar</button><button
+                        onclick="window.print()">🖨️ Imprimir listado</button><button onclick="exportCSV()">📥 Exportar
+                        CSV</button></div>
+                <div class="scroll">
+                    <table>
+                        <thead id="reporteHead"></thead>
+                        <tbody id="reporteBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section id="respaldo">
+            <div class="card">
+                <h2>Respaldo de datos</h2>
+                <p>Exportar o importar todos los listados y la galería en formato JSON.</p>
+                <div class="actions"><button onclick="exportJSON()">📤 Exportar JSON</button><button
+                        onclick="document.getElementById('importFile').click()">📥 Importar JSON</button><input hidden
+                        type="file" id="importFile" accept=".json,application/json" onchange="importJSON(event)"><button
+                        class="danger" onclick="clearAll()">🗑️ Borrar todos los datos</button></div>
+                <p class="hint">La importación reemplaza los datos actuales. Conserve copias de respaldo.</p>
+            </div>
+        </section>
+    </main>
+    <footer>© 2026 • Prototipo académico institucional • Área de Informática</footer>
+    <script>
+        'use strict';
+        const SCHEMA = { directivos: ['Nombre completo', 'Cargo', 'Identidad', 'Teléfono', 'Correo'], docentes: ['Nombre completo', 'Identidad', 'Asignatura', 'Jornada', 'Teléfono', 'Correo'], estudiantes: ['Nombre completo', 'Identidad', 'Grado', 'Sección', 'Jornada', 'Encargado'], matriculas: ['Estudiante', 'Grado', 'Sección', 'Año lectivo', 'Estado'], asignaturas: ['Nombre de asignatura', 'Código', 'Grado', 'Docente'], calificaciones: ['Estudiante', 'Asignatura', 'Parcial', 'Calificación', 'Año lectivo'], eventos: ['Nombre del evento', 'Fecha', 'Responsable', 'Descripción'], noticias: ['Título', 'Fecha', 'Autor', 'Contenido'] };
+        const LABELS = { directivos: 'Personal directivo', docentes: 'Docentes', estudiantes: 'Estudiantes', matriculas: 'Matrículas', asignaturas: 'Asignaturas', calificaciones: 'Calificaciones', eventos: 'Eventos', noticias: 'Noticias' }; let actual = 'docentes', fotosVisibles = true; const $ = id => document.getElementById(id), key = t => 'perla3d_' + t;
+        function get(t) { try { const v = JSON.parse(localStorage.getItem(key(t)) || '[]'); return Array.isArray(v) ? v : [] } catch { return [] } }
+        function put(t, v) { try { localStorage.setItem(key(t), JSON.stringify(v)); return true } catch (e) { alert('No se pudo guardar. El almacenamiento del navegador puede estar lleno. Exporte un respaldo y elimine imágenes grandes.'); return false } }
+        function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
+        function show(id) { document.querySelectorAll('main section').forEach(s => s.classList.toggle('active', s.id === id)); document.querySelectorAll('.menu').forEach(m => m.classList.remove('open')); if (id === 'inicio') stats(); if (id === 'reportes') renderReporte(); if (id === 'galeria') renderFotos() }
+        function openType(t) { actual = t; $('tituloRegistro').textContent = 'Administración de ' + LABELS[t]; $('campos').innerHTML = SCHEMA[t].map((f, i) => `<div><label for="campo${i}">${esc(f)}</label><input id="campo${i}" ${i === 0 ? 'required' : ''} maxlength="150" placeholder="${esc(f)}"></div>`).join(''); resetForm(); show('registros') }
+        function resetForm() { $('form').reset(); $('editId').value = ''; $('busqueda').value = ''; renderTabla() }
+        $('form').onsubmit = e => { e.preventDefault(); const datos = {}; SCHEMA[actual].forEach((f, i) => datos[f] = $('campo' + i).value.trim()); if (!datos[SCHEMA[actual][0]]) return alert('Ingrese el campo principal.'); const lista = get(actual), id = $('editId').value; if (id) { const i = lista.findIndex(x => x.id === id); if (i < 0) return alert('Registro no encontrado.'); lista[i] = { id, ...datos } } else lista.push({ id: crypto.randomUUID?.() || String(Date.now()) + Math.random(), ...datos }); if (put(actual, lista)) { resetForm(); alert('Registro guardado correctamente.') } };
+        function renderTabla() { const fields = SCHEMA[actual], q = $('busqueda').value.toLowerCase(); $('cabecera').innerHTML = '<tr>' + fields.map(f => `<th>${esc(f)}</th>`).join('') + '<th>Acciones</th></tr>'; $('filas').innerHTML = get(actual).filter(x => Object.values(x).some(v => String(v).toLowerCase().includes(q))).map(x => '<tr>' + fields.map(f => `<td>${esc(x[f])}</td>`).join('') + `<td><button data-edit="${esc(x.id)}">✏️ Modificar</button> <button class="danger" data-del="${esc(x.id)}">🗑️ Eliminar</button></td></tr>`).join('') || '<tr><td colspan="20">No hay registros.</td></tr>' }
+        $('filas').onclick = e => { const b = e.target.closest('button'); if (!b) return; const id = b.dataset.edit || b.dataset.del; if (b.dataset.edit) { const x = get(actual).find(v => v.id === id); if (!x) return; $('editId').value = id; SCHEMA[actual].forEach((f, i) => $('campo' + i).value = x[f] || ''); $('form').scrollIntoView({ behavior: 'smooth' }) } else if (confirm('¿Eliminar este registro?')) { put(actual, get(actual).filter(v => v.id !== id)); renderTabla() } };
+        function stats() { $('stats').innerHTML = Object.keys(SCHEMA).map(t => `<div class="stat"><strong>${get(t).length}</strong><br>${LABELS[t]}</div>`).join('') + `<div class="stat"><strong>${get('fotos').length}</strong><br>Fotografías</div>` }
+        function renderReporte() { const t = $('tipoReporte').value, fs = SCHEMA[t]; $('reporteHead').innerHTML = '<tr><th>#</th>' + fs.map(f => `<th>${esc(f)}</th>`).join('') + '</tr>'; $('reporteBody').innerHTML = get(t).map((r, i) => `<tr><td>${i + 1}</td>${fs.map(f => `<td>${esc(r[f])}</td>`).join('')}</tr>`).join('') || '<tr><td colspan="20">No hay datos guardados.</td></tr>' }
+        function csvCell(v) { const s = String(v ?? ''); return '"' + (/^[=+\-@\t\r]/.test(s) ? "'" : '') + s.replace(/"/g, '""') + '"' }
+        function download(name, data, mime) { const url = URL.createObjectURL(new Blob([data], { type: mime })); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000) }
+        function exportCSV() { const t = $('tipoReporte').value, fs = SCHEMA[t]; const lines = [fs.map(csvCell).join(','), ...get(t).map(r => fs.map(f => csvCell(r[f])).join(','))]; download('listado_' + t + '.csv', '\ufeff' + lines.join('\r\n'), 'text/csv;charset=utf-8') }
+        $('fotoForm').onsubmit = async e => { e.preventDefault(); const file = $('fotoArchivo').files[0]; if (!file || !file.type.startsWith('image/')) return alert('Seleccione una imagen válida.'); if (file.size > 12e6) return alert('La imagen es demasiado grande.'); try { const src = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(file) }); const img = new Image(); await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = src }); const c = document.createElement('canvas'), scale = Math.min(1, 900 / img.width, 900 / img.height); c.width = Math.max(1, Math.round(img.width * scale)); c.height = Math.max(1, Math.round(img.height * scale)); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); const lista = get('fotos'); lista.push({ id: crypto.randomUUID?.() || String(Date.now()), nombre: $('fotoNombre').value.trim(), categoria: $('fotoCategoria').value, src: c.toDataURL('image/jpeg', .7) }); if (put('fotos', lista)) { $('fotoForm').reset(); renderFotos() } } catch { alert('No se pudo procesar la imagen.') } };
+        function renderFotos() { $('contenedorGaleria').style.display = fotosVisibles ? 'block' : 'none'; $('fotos').innerHTML = get('fotos').map(f => `<div class="photo"><img src="${f.src}" alt="${esc(f.nombre)}"><p><strong>${esc(f.nombre)}</strong><br>${esc(f.categoria)}</p><div class="no-print"><button data-rename="${esc(f.id)}">✏️ Renombrar</button><button class="danger" data-remove="${esc(f.id)}">Eliminar</button></div></div>`).join('') || '<p>No hay imágenes guardadas.</p>' }
+        $('fotos').onclick = e => { const b = e.target.closest('button'); if (!b) return; const id = b.dataset.rename || b.dataset.remove, arr = get('fotos'), f = arr.find(x => x.id === id); if (!f) return; if (b.dataset.rename) { const nombre = prompt('Nuevo nombre:', f.nombre); if (nombre === null) return; if (!nombre.trim()) return alert('El nombre no puede quedar vacío.'); f.nombre = nombre.trim().slice(0, 100) } else { if (!confirm('¿Eliminar fotografía?')) return; arr.splice(arr.indexOf(f), 1) } if (put('fotos', arr)) renderFotos() };
+        function toggleFotos() { fotosVisibles = !fotosVisibles; renderFotos() }
+        function exportJSON() { const data = { version: 1, fecha: new Date().toISOString(), registros: {} };[...Object.keys(SCHEMA), 'fotos'].forEach(t => data.registros[t] = get(t)); download('respaldo_perla_ulua.json', JSON.stringify(data, null, 2), 'application/json') }
+        async function importJSON(e) { const f = e.target.files[0]; if (!f) return; try { const data = JSON.parse(await f.text()); if (data.version !== 1 || !data.registros || [...Object.keys(SCHEMA), 'fotos'].some(t => !Array.isArray(data.registros[t]))) throw Error('Formato no válido'); if (!confirm('¿Reemplazar TODOS los registros actuales con este respaldo?')) return; const previous = {};[...Object.keys(SCHEMA), 'fotos'].forEach(t => previous[t] = localStorage.getItem(key(t))); try { for (const t of [...Object.keys(SCHEMA), 'fotos']) localStorage.setItem(key(t), JSON.stringify(data.registros[t])) } catch (err) { for (const t of Object.keys(previous)) { if (previous[t] === null) localStorage.removeItem(key(t)); else localStorage.setItem(key(t), previous[t]) } throw err } stats(); renderFotos(); renderReporte(); alert('Respaldo importado correctamente.') } catch (err) { alert('No se pudo importar: ' + err.message) } finally { e.target.value = '' } }
+        function clearAll() { if (confirm('¿Eliminar TODOS los datos institucionales y fotografías de este navegador?')) { [...Object.keys(SCHEMA), 'fotos'].forEach(t => localStorage.removeItem(key(t))); stats(); renderFotos(); renderReporte(); alert('Datos eliminados.') } }
+        $('navreg').innerHTML = Object.keys(SCHEMA).map(t => `<button data-type="${t}">${LABELS[t]}</button>`).join(''); $('navreg').onclick = e => { const b = e.target.closest('[data-type]'); if (b) openType(b.dataset.type) }; $('tipoReporte').innerHTML = Object.keys(SCHEMA).map(t => `<option value="${t}">${LABELS[t]}</option>`).join(''); openType('docentes'); show('inicio');
+    </script>
+</body>
+
+</html>
